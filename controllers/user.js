@@ -1,12 +1,15 @@
 const User = require("../models/User");
+const { sendVerificationEmail } = require("../models/helpers/mailer");
 const { generateToken } = require("../models/helpers/tokens");
 const {
   validateEmail,
   validateLength,
   validateUsername,
 } = require("../models/helpers/validation");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
+// user register
 exports.register = async (req, res) => {
   try {
     const {
@@ -60,7 +63,7 @@ exports.register = async (req, res) => {
       last_name,
       username: newUsername,
       email,
-      password,
+      password: cryptedPassword,
       gender,
       bYear,
       bMoth,
@@ -71,9 +74,69 @@ exports.register = async (req, res) => {
       { id: user._id.toString() },
       "30m"
     );
-    console.log(emailVerificationToken);
 
-    res.json(user);
+    const url = `${process.env.BASE_URL}/activate/${emailVerificationToken}`;
+    sendVerificationEmail(user.email, user.first_name, url);
+    const token = generateToken({ id: user._id.toString() }, "7d");
+
+    res.send({
+      id: user._id,
+      username: user.username,
+      picture: user.picture,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      token: token,
+      verified: user.verified,
+      message: "Register success | please active your email to start.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.activateAccount = async (req, res) => {
+  const { token } = req.body;
+  const user = jwt.verify(token, process.env.TOKEN_SECRET);
+  const check = await User.findById(user.id);
+
+  if (check.verified === true) {
+    return res.status(400).json({ message: "This email is already activated" });
+  } else {
+    await User.findByIdAndUpdate(user.id, { verified: true });
+    return res
+      .status(200)
+      .json({ message: "Account has been activated successfully." });
+  }
+};
+
+// login
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message:
+          "the email address you entered is not connected to an account.",
+      });
+    }
+    const check = await bcrypt.compare(password, user.password);
+    if (!check) {
+      return res.status(400).json({
+        message: "Invalid credentials. Please try again.",
+      });
+    }
+    const token = generateToken({ id: user._id.toString() }, "7d");
+    res.send({
+      id: user._id,
+      username: user.username,
+      picture: user.picture,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      token: token,
+      verified: user.verified,
+      message: "Register success | please active your email to start.",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
