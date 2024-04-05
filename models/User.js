@@ -51,7 +51,7 @@ const UserSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
-    bMoth: {
+    bMonth: {
       type: Number,
       required: true,
       trim: true,

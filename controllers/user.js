@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
       password,
       gender,
       bYear,
-      bMoth,
+      bMonth,
       bDay,
     } = req.body;
 
@@ -66,7 +66,7 @@ exports.register = async (req, res) => {
       password: cryptedPassword,
       gender,
       bYear,
-      bMoth,
+      bMonth,
       bDay,
     }).save();
 
@@ -87,7 +87,7 @@ exports.register = async (req, res) => {
       last_name: user.last_name,
       token: token,
       verified: user.verified,
-      message: "Register success | please active your email to start.",
+      message: "Register success | Please active your email to start.",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
