@@ -1,48 +1,51 @@
-
 const cloudinary = require("cloudinary");
 const fs = require("fs");
 cloudinary.config({
-clound_name:process.env.CLOUD_NAME,
-api_key:process.env.CLOUD_API_KEY,
-api_secret:process.env.CLOUD_API_SECRET,
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
 });
-
-
 exports.uploadImages = async (req, res) => {
-try {
+  try {
     const { path } = req.body;
-    let files = Object.values.apply(req.files).flat();
+    let files = Object.values(req.files).flat();
     let images = [];
     for (const file of files) {
-        const url = await uploadToCloudinary(file, path);
-        images.push(url);
-        removeTmp(file.tempFilePath);
+      const url = await uploadToCloudinary(file, path);
+      images.push(url);
+      removeTmp(file.tempFilePath);
     }
     res.json(images);
-} catch (error) {
-    return res.status(500).json({message: error.message})
-}
-}
-const uploadToCloudinary = async (file, path){
-    return new Promise((resolve)=> {
-        cloudinary.v2.uploader.upload(
-            file.tempFilePath, {
-        folder:path
-        }, (err, res) => {
-                if (err) {
-                    removeTmp(file.tempFilePath);
-                    return res.status(400).josn({message: "Upload image failed."})
-                }
-                resolve({
-                url:res.secure_url,
-                })
-            }
-        )
-})
-}
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const uploadToCloudinary = async (file, path) => {
+  return new Promise((resolve) => {
+    cloudinary.v2.uploader.upload(
+      file.tempFilePath,
+      {
+        folder: path,
+      },
+      (err, result) => { // Change 'res' to 'result'
+        if (err) {
+          removeTmp(file.tempFilePath);
+          return resolve({ error: "Upload image failed." }); // Changed 'res' to 'resolve'
+        }
+        resolve({
+          url: result.secure_url, // Changed 'res' to 'result'
+        });
+      }
+    );
+  });
+};
+
+
+
 
 const removeTmp = (path) => {
-    fs.unlink(path, (err) => {
-        if (err) throw err;
-    })
-}
+  fs.unlink(path, (err) => {
+    if (err) throw err;
+  });
+};
