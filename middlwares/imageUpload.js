@@ -15,7 +15,7 @@ module.exports = async function (req, res, next) {
         removeTmp(file.tempFilePath);
         return res.status(400).json({ message: "Unsupported format." });
       }
-      if (file.size > 1024 * 1024 * 5) {
+      if (file.size > 1024 * 1024 * 15) {
         removeTmp(file.tempFilePath);
         return res.status(400).json({ message: "File size is too large." });
       }

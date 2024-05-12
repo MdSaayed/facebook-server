@@ -1,5 +1,6 @@
 const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const User = require("../models/User");                                      
+const Post = require("../models/Post");                                      
 const { generateToken } = require("../helpers/tokens");
 const {
   validateEmail,
@@ -248,6 +249,76 @@ exports.changePassword = async(req,res)=>{
   )
   return res.status(200).json({message:"ok"})
 }
+
+exports.getProfile = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const profile = await User.findOne({ username }).select("-password");
+    if (!profile) {
+      return res.json({ ok: false });
+    }
+    const posts = await Post.find({ user: profile._id }).populate("user").sort({createdAt:-1});
+    res.json({ ...profile.toObject(), posts });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateProfilePicture = async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    await User.findByIdAndUpdate(req.user.id, {
+      picture: url,
+    });
+    res.json(url);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateCover = async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    await User.findByIdAndUpdate(req.user.id, {
+      cover: url,
+    });
+    res.json(url);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.updateDetails = async (req, res) => {
+  try {
+    const { infos } = req.body;
+
+    const updated = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        details: infos,
+      },
+      {
+        new: true,
+      }
+    );
+    res.json(updated.details);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
