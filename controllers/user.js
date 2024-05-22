@@ -280,6 +280,7 @@ exports.getProfile = async (req, res) => {
     }
 
     const posts = await Post.find({ user: profile._id }).populate("user").sort({ createdAt: -1 });
+    await profile.populate('friends', 'first_name last_name username picture');
     res.json({ ...profile.toObject(), posts, friendship });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -521,30 +522,38 @@ exports.unfriend = async (req, res) => {
 
 exports.deleteRequest = async (req, res) => {
   try {
-    if (req.user.id !== req.params.id) {
-      const receiver = await User.findById(req.user.id);
-      const sender = await User.findById(req.params.id);
-      if (receiver.requests.includes(sender._id)) {
-        await receiver.update({
-          $pull: {
-            requests: sender._id,
-            followers: sender._id,
-          },
-        });
-        await sender.update({
-          $pull: {
-            following: receiver._id,
-          },
-        });
+    const receiver = await User.findById(req.user.id);
+    const sender = await User.findById(req.params.id);
 
-        res.json({ message: "delete request accepted" });
-      } else {
-        return res.status(400).json({ message: "Already deleted" });
-      }
-    } else {
+    if (!receiver || !sender) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (req.user.id === req.params.id) {
       return res.status(400).json({ message: "You can't delete yourself" });
     }
+
+    if (!receiver.requests.includes(sender._id)) {
+      return res.status(400).json({ message: "Request already deleted" });
+    }
+
+    await receiver.updateOne({
+      $pull: {
+        requests: sender._id,
+        followers: sender._id,
+      },
+    });
+
+    await sender.updateOne({
+      $pull: {
+        following: receiver._id,
+      },
+    });
+
+    res.json({ message: "Delete request accepted" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Server error:', error); // Log the error details
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
