@@ -138,7 +138,7 @@ const UserSchema = mongoose.Schema(
         },
         saveAt: {
           type: Date,
-          default: Date.now,
+          default: Date.now(),
         },
       },
     ],

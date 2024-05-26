@@ -80,9 +80,7 @@ exports.getReacts = async (req, res) => {
                 count: newReacts.sad ? newReacts.sad.length : 0,
             },
         ];
-        reacts.sort((a, b) => {
-            return b.count - a.count;
-        })
+
 
         const check = await React.findOne({
             postRef: postId,
