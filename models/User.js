@@ -130,7 +130,7 @@ const UserSchema = mongoose.Schema(
         type: String,
       },
     },
-    savePost: [
+    savePosts: [
       {
         post: {
           type: ObjectId,
@@ -138,7 +138,7 @@ const UserSchema = mongoose.Schema(
         },
         saveAt: {
           type: Date,
-          default: Date.now(),
+          required: true,
         },
       },
     ],

@@ -1,4 +1,5 @@
 const React = require('../models/React');
+const User = require('../models/User');
 const mongoose = require("mongoose");
 
 exports.reactPost = async (req, res) => {
@@ -45,52 +46,48 @@ exports.getReacts = async (req, res) => {
     try {
         const postId = req.params.id;
         const userId = req.user.id;
+
+        // Find all reactions for the given post
         const reactsArray = await React.find({ postRef: postId });
-        /* const check1 = reacts.find((x) => x.reactBy.toString() == userId)?.react; */
+
+        // Group reactions by their type
         const newReacts = reactsArray.reduce((group, react) => {
-            let key = react["react"];
-            group[key] = group[key] || [];
+            let key = react.react;
+            if (!group[key]) {
+                group[key] = [];
+            }
             group[key].push(react);
             return group;
         }, {});
 
+        // Define the reacts array with counts for each type
         const reacts = [
-            {
-                react: "like",
-                count: newReacts.like ? newReacts.like.length : 0,
-            },
-            {
-                react: "love",
-                count: newReacts.love ? newReacts.love.length : 0,
-            },
-            {
-                react: "haha",
-                count: newReacts.haha ? newReacts.haha.length : 0,
-            },
-            {
-                react: "wow",
-                count: newReacts.wow ? newReacts.wow.length : 0,
-            },
-            {
-                react: "angry",
-                count: newReacts.angry ? newReacts.angry.length : 0,
-            },
-            {
-                react: "sad",
-                count: newReacts.sad ? newReacts.sad.length : 0,
-            },
+            { react: "like", count: newReacts.like ? newReacts.like.length : 0 },
+            { react: "love", count: newReacts.love ? newReacts.love.length : 0 },
+            { react: "haha", count: newReacts.haha ? newReacts.haha.length : 0 },
+            { react: "wow", count: newReacts.wow ? newReacts.wow.length : 0 },
+            { react: "angry", count: newReacts.angry ? newReacts.angry.length : 0 },
+            { react: "sad", count: newReacts.sad ? newReacts.sad.length : 0 },
         ];
 
-
-        const check = await React.findOne({
+        // Check if the current user has reacted to the post
+        const userReaction = await React.findOne({
             postRef: postId,
             reactBy: new mongoose.Types.ObjectId(userId),
         });
 
+        // Find the current user to check if the post is saved
+        const user = await User.findById(userId);
+        const checkSaved = user?.savePosts.find(
+            (x) => x.post.toString() === postId
+        );
+
+        // Respond with the reacts data, user reaction, total reactions, and save status
         res.json({
             reacts,
-            check: check?.react,
+            check: userReaction ? userReaction.react : null,
             total: reactsArray.length,
+            checkSaved: Boolean(checkSaved),
         });
     } catch (error) {
         return res.status(500).json({ message: error.message });
