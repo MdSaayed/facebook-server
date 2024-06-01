@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, activateAccount, auth, sendVerification, findUser, sendResetPasswordCode, validateResetCode, changePassword, getProfile, updateProfilePicture, updateCover, updateDetails, addFriend, cancelRequest, unfollow, follow, acceptRequest, unfriend, deleteRequest } = require("../controllers/user");
+const { register, login, activateAccount, auth, sendVerification, findUser, sendResetPasswordCode, validateResetCode, changePassword, getProfile, updateProfilePicture, updateCover, updateDetails, addFriend, cancelRequest, unfollow, follow, acceptRequest, unfriend, deleteRequest, search } = require("../controllers/user");
 const { authUser } = require("../middlwares/auth");
 
 const router = express.Router();
@@ -25,6 +25,7 @@ router.put("/unfollow/:id", authUser, unfollow);
 router.put("/acceptRequest/:id", authUser, acceptRequest);
 router.put("/unfriend/:id", authUser, unfriend);
 router.put("/deleteRequest/:id", authUser, deleteRequest);
+router.post("/search/:searchTerm", authUser, search);
 
 
 module.exports = router;
