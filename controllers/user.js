@@ -593,3 +593,23 @@ exports.addToSearchHistory = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+exports.getSearchHistory = async (req, res) => {
+  try {
+    // Retrieve the user document by ID and select only the "search" field
+    const user = await User.findById(req.user.id).select("search").populate("search.user", "first_name last_name username picture");
+
+    // If user not found, send a 404 error
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Respond with the search history
+    res.json(user.search);
+  } catch (error) {
+    // Log the error for debugging purposes
+    console.error(error);
+
+    // Send a 500 status code with an error message
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
