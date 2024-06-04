@@ -11,6 +11,7 @@ const Code = require("../models/Code");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const generateCode = require("../helpers/generateCode");
+const mongoose = require("mongoose");
 
 
 
@@ -601,7 +602,6 @@ exports.getSearchHistory = async (req, res) => {
     }
     res.json(user.search);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -613,7 +613,29 @@ exports.removeFromSearch = async (req, res) => {
       { $pull: { search: { user: searchUser } } }
     );
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+exports.getFriendsPageInfo = async (req, res) => {
+  try {
+
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    const user = await User.findById(userId)
+      .select("friends requests")
+      .populate("friends", "first_name last_name picture username")
+      .populate("requests", "first_name last_name picture username");
+
+    const sentRequests = await User.find({
+      requests: userId,
+    }).select("first_name last_name picture username");
+
+    res.json({
+      friends: user.friends,
+      requests: user.requests,
+      sentRequests,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};

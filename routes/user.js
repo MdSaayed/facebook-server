@@ -1,11 +1,13 @@
 const express = require("express");
-const { register, login, activateAccount, auth, sendVerification, findUser, sendResetPasswordCode, validateResetCode, changePassword, getProfile, updateProfilePicture, updateCover, updateDetails, addFriend, cancelRequest, unfollow, follow, acceptRequest, unfriend, deleteRequest, search, addToSearchHistory, getSearchHistory, removeFromSearch } = require("../controllers/user");
-const { authUser } = require("../middlwares/auth");
+const { register, login, activateAccount, auth, sendVerification, findUser, sendResetPasswordCode, validateResetCode, changePassword, getProfile, updateProfilePicture, updateCover, updateDetails, addFriend, cancelRequest, unfollow, follow, acceptRequest, unfriend, deleteRequest, search, addToSearchHistory, getSearchHistory, removeFromSearch, getFriendsPageInfo } = require("../controllers/user");
 
+const { authUser } = require("../middlwares/auth");
 const router = express.Router();
 router.get("/", (req, res) => {
     res.send("Welcome to the API home route!");
 });
+
+
 router.post("/register", register);
 router.post("/activate", authUser, activateAccount);
 router.post("/login", login);
@@ -29,6 +31,7 @@ router.post("/search/:searchTerm", authUser, search);
 router.put("/addToSearchHistory", authUser, addToSearchHistory);
 router.get("/getSearchHistory", authUser, getSearchHistory);
 router.put("/removeFromSearch", authUser, removeFromSearch);
+router.get("/getFriendsPageInfo", authUser, getFriendsPageInfo);
 
 
 module.exports = router;
